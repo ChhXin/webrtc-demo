@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ZH-CN">
+<head>
+  <meta charset="utf-8">
+  <title>webRTC demo</title>
+  <style>
+    .booth {
+      width:400px;
+      background:#ccc;
+      border: 10px solid #ddd;
+      margin: 0 auto;
+    }
+    div{
+      width: 800px;
+      margin: 0 auto;
+    }
+    section{
+      text-align: center;
+    }
+    button{
+      background-color: #d84a38;
+      border: none;
+      border-radius: 2px;
+      color: white;
+      font-family: 'Roboto', sans-serif;
+      font-size: 20px;
+      padding: 10px 20px;  
+      margin: 20px auto; 
+     }
+     a{
+      color: #6fa8dc;
+      text-decoration: none;
+     }
+  </style>
+</head>
+<body>
+    <div>
+        <h1>
+          <a href="https://github.com/ChhXin/webrtc-demo.git" title="WebRTC demo">WebRTC demo</a>
+          <span>getUserMedia ⇒ canvas</span>
+        </h1>
+      <section>
+        <video id="video"></video>
+      </section>
+      <section>
+        <audio id="audio"></audio>
+      </section>
+      <button id="btn">拍照</button>
+      <section>
+        <canvas id="canvas"></canvas>
+      </section>
+    </div>
+
+    <div>
+      <h1>相关知识</h1>
+      <h2>获取用户媒体流:</h2>
+      <p>
+        <code>navigator.mediaDevices.getUserMedia({video: true, audio: true})  // 异步操作</code>
+      </p>
+      <h2>获取video/audio媒体设备列表</h2>
+      <p><code>navigator.mediaDevices.enumerateDevices()  // 异步操作</code></p>
+    </div>
+  <script>
+    let convas = document.querySelector("#canvas"); //
+    let video = document.querySelector("#video");
+    let audio = document.querySelector("audio");
+    let btn = document.querySelector("button");
+    let context = canvas.getContext('2d');
+    let width = 800; //视频和canvas的宽度
+    let height = 600;
+    let streaming = false; // 是否开始捕获媒体
+
+    navigator.mediaDevices
+    .enumerateDevices()
+    .then(function(devices) {
+      devices.forEach(function(device) {
+        console.log(device.kind + ': ' + device.label + ' id = ' + device.deviceId);
+      });
+    })
+    .catch(function(err) {
+      console.log(err.name + ': ' + err.message);
+    });
+
+    // 判断是否支持当前约束
+    let supported = navigator.mediaDevices.getSupportedConstraints();
+    console.log(`${supported ? '支持' : '不支持'}当前请求的视频分辨率`, width, height);
+    
+    // 获取用户媒体,包含视频和音频
+    if(supported) {
+      navigator.mediaDevices.getUserMedia({video: true, audio: true})
+        .then(stream => {
+        video.srcObject = stream; // 将捕获的视频流传递给video  放弃window.URL.createObjectURL(stream)的使用
+        video.play(); //  播放视频
+        audio.srcObject = stream;
+        audio.play();
+      }).catch(err => {
+        if (err.name == 'NotFoundError' || err.name == 'DeviceNotFoundError') {
+          // require track is missing
+          console.error(err.name, '没有可以使用的设备');
+        } else if (err.name == 'NotReadableError' || err.name == 'TrackStartError') {
+          // webcam or mic are already in use
+          console.error(err.name, '未能分配视频源');
+        } else if (err.name == 'OverconstrainedError' || err.name == 'ConstraintNotSatisfiedError') {
+          // constraints can not be satisfied by avb.device
+          console.error(err.name, '无法满足约束对象');
+        } else if (err.name == 'NotAllowedError' || err.name == 'PermissionDeniedError') {
+          // permission denied in browser
+          console.error(err.name, '没有设备使用权限');
+        } else if (err.name == 'TypeError' || err.name == 'TypeError') {
+          // empty constraints object
+          console.error(err.name, '约束对象为空');
+        } else {
+          // other errors
+          console.error(err.name, '其他错误');
+        }
+      });
+    }
+
+    // 将视频画面捕捉后绘制到canvas里面
+    function capture() {
+      // 需要判断媒体流是否就绪
+      if(streaming){
+          context.drawImage(video, 0, 0, width, height);
+      }
+    }
+    
+    btn.addEventListener('click',capture,false); // 按钮点击事件
+    
+    // 监听视频流就位事件,即视频可以播放了
+    video.addEventListener('canplay', function(ev){
+          if (!streaming) {
+            height = video.videoHeight / (video.videoWidth/width);
+            video.setAttribute('width', width);
+            video.setAttribute('height', height);
+            canvas.setAttribute('width', width);
+            canvas.setAttribute('height', height);
+            streaming = true;
+          }
+        }, false);
+  </script>
+</body>
+</html>
