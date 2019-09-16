@@ -25,7 +25,7 @@
 
 ### 获取可使用的媒体流
 
-##### MediaDevices.getUserMedia()
+##### 1. MediaDevices.getUserMedia()
 
 getUserMedia API是由最初的`navigator.getUserMedia`（已被最新Web标准废弃），变更为`navigator.mediaDevices.getUserMedia`。`getUserMedia`使用时，首先会提示用户授权媒体输入许可，然后生成`MediaStream`。
 
@@ -67,7 +67,7 @@ function getMedia(constraints) {
 *Chrome 47以后，getUserMedia API只能允许来自“安全可信”的客户端的视频音频请求，如HTTPS和本地的Localhost。如果页面的脚本从一个非安全源加载，`navigator`对象中则没有可用的`mediaDevices`对象，Chrome抛出错误。*
 
 
-##### MediaDevices.getDisplayMedia()
+##### 2. MediaDevices.getDisplayMedia()
 
 
 这个 MediaDevices  接口的 `getDisplayMedia` 方法提示用户去选择和授权捕获展示的内容或部分内容（如一个窗口）在一个  MediaStream 里。其中包含一个视频轨道（视频轨道的内容来自用户选择的屏幕区域以及一个可选的音频轨道），然后流能被用 MediaStream Recording API 记录或传输一部分去一个WebRTC 会话。
